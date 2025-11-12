@@ -2,13 +2,43 @@ import { isGPT5ModelFamily, isNextGenModelProvider } from "@utils/model-utils"
 import { ModelFamily } from "@/shared/prompts"
 import { ClineDefaultTool } from "@/shared/tools"
 import { SystemPromptSection } from "../../templates/placeholders"
-import { SystemPromptContext } from "../../types"
+import { PromptVariant, SystemPromptContext } from "../../types"
 import { createVariant } from "../variant-builder"
 import { validateVariant } from "../variant-validator"
 import { GPT_5_TEMPLATE_OVERRIDES } from "./template"
 
 // Type-safe variant configuration using the builder pattern
 export const config = (context: SystemPromptContext) => {
+	let componentOverrides: PromptVariant["componentOverrides"] = {}
+	if (context.providerInfo?.model?.info?.canUseTools && context.enableNativeToolCalls) {
+		componentOverrides = {
+			RULES_SECTION: {
+				template: GPT_5_TEMPLATE_OVERRIDES.RULES_NATIVETOOLS,
+			},
+			TOOL_USE_SECTION: {
+				template: GPT_5_TEMPLATE_OVERRIDES.TOOL_USE,
+			},
+			ACT_VS_PLAN_SECTION: {
+				template: GPT_5_TEMPLATE_OVERRIDES.ACT_VS_PLAN,
+			},
+			OBJECTIVE_SECTION: {
+				template: GPT_5_TEMPLATE_OVERRIDES.OBJECTIVE,
+			},
+			FEEDBACK_SECTION: {
+				template: GPT_5_TEMPLATE_OVERRIDES.FEEDBACK,
+			},
+			EDITING_FILES_SECTION: {
+				enabled: false,
+			},
+		}
+	} else {
+		componentOverrides = {
+			RULES_SECTION: {
+				template: GPT_5_TEMPLATE_OVERRIDES.RULES,
+			},
+		}
+	}
+
 	const variant = createVariant(ModelFamily.GPT_5, context)
 		.description("Prompt tailored to GPT-5 with text-based tools")
 		.version(1)
@@ -32,24 +62,7 @@ export const config = (context: SystemPromptContext) => {
 		})
 		.config({})
 		// Override the RULES component with custom template
-		.overrideComponent(SystemPromptSection.RULES, {
-			template: GPT_5_TEMPLATE_OVERRIDES.RULES,
-		})
-		.overrideComponent(SystemPromptSection.TOOL_USE, {
-			template: GPT_5_TEMPLATE_OVERRIDES.TOOL_USE,
-		})
-		.overrideComponent(SystemPromptSection.ACT_VS_PLAN, {
-			template: GPT_5_TEMPLATE_OVERRIDES.ACT_VS_PLAN,
-		})
-		.overrideComponent(SystemPromptSection.OBJECTIVE, {
-			template: GPT_5_TEMPLATE_OVERRIDES.OBJECTIVE,
-		})
-		.overrideComponent(SystemPromptSection.FEEDBACK, {
-			template: GPT_5_TEMPLATE_OVERRIDES.FEEDBACK,
-		})
-		.overrideComponent(SystemPromptSection.EDITING_FILES, {
-			enabled: !context.providerInfo.model.info.canUseTools || !context.enableNativeToolCalls,
-		})
+		.overrideComponents(componentOverrides)
 		.build()
 
 	// Validation

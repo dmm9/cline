@@ -2,13 +2,40 @@ import { isGPT5ModelFamily, isLocalModel, isNextGenModelFamily, isNextGenModelPr
 import { ModelFamily } from "@/shared/prompts"
 import { ClineDefaultTool } from "@/shared/tools"
 import { SystemPromptSection } from "../../templates/placeholders"
-import { SystemPromptContext } from "../../types"
+import { PromptVariant, SystemPromptContext } from "../../types"
 import { createVariant } from "../variant-builder"
 import { validateVariant } from "../variant-validator"
 import { TEMPLATE_OVERRIDES } from "./template"
 
 // Type-safe variant configuration using the builder pattern
 export const config = (context: SystemPromptContext) => {
+	let componentOverrides: PromptVariant["componentOverrides"] = {}
+	if (context.providerInfo?.model?.info?.canUseTools && context.enableNativeToolCalls) {
+		componentOverrides = {
+			RULES_SECTION: {
+				template: TEMPLATE_OVERRIDES.RULES_NATIVETOOLS,
+			},
+			TOOL_USE_SECTION: {
+				template: TEMPLATE_OVERRIDES.TOOL_USE,
+			},
+			ACT_VS_PLAN_SECTION: {
+				template: TEMPLATE_OVERRIDES.ACT_VS_PLAN,
+			},
+			OBJECTIVE_SECTION: {
+				template: TEMPLATE_OVERRIDES.OBJECTIVE,
+			},
+			FEEDBACK_SECTION: {
+				template: TEMPLATE_OVERRIDES.FEEDBACK,
+			},
+		}
+	} else {
+		componentOverrides = {
+			RULES_SECTION: {
+				template: TEMPLATE_OVERRIDES.RULES,
+			},
+		}
+	}
+
 	const variant = createVariant(ModelFamily.NEXT_GEN, context)
 		.description("Prompt tailored to newer frontier models with smarter agentic capabilities.")
 		.version(1)
@@ -40,21 +67,7 @@ export const config = (context: SystemPromptContext) => {
 		})
 		.config({})
 		// Override the RULES component with custom template
-		.overrideComponent(SystemPromptSection.RULES, {
-			template: TEMPLATE_OVERRIDES.RULES,
-		})
-		.overrideComponent(SystemPromptSection.TOOL_USE, {
-			template: TEMPLATE_OVERRIDES.TOOL_USE,
-		})
-		.overrideComponent(SystemPromptSection.OBJECTIVE, {
-			template: TEMPLATE_OVERRIDES.OBJECTIVE,
-		})
-		.overrideComponent(SystemPromptSection.ACT_VS_PLAN, {
-			template: TEMPLATE_OVERRIDES.ACT_VS_PLAN,
-		})
-		.overrideComponent(SystemPromptSection.FEEDBACK, {
-			template: TEMPLATE_OVERRIDES.FEEDBACK,
-		})
+		.overrideComponents(componentOverrides)
 		.build()
 
 	// Validation
