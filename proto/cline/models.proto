@@ -97,6 +97,7 @@ message OpenRouterModelInfo {
   optional bool supports_global_endpoint = 11;
   repeated ModelTier tiers = 12;
   optional string name = 13;
+  optional bool can_use_tools = 14;
 }
 
 // Shared response message for model information
@@ -371,6 +372,8 @@ message OcaModelInfo {
   optional string banner = 16;
   // Canonical model identifier as reported by OCA
   string model_name = 17;
+  // Indicates whether the model has been trained on tool usage
+  optional bool can_use_tools = 18;
 }
 
 // Aggregated OCA model catalog keyed by model identifier
@@ -441,6 +444,7 @@ message OpenAiCompatibleModelInfo {
   repeated ModelTier tiers = 12;
   optional double temperature = 13;
   optional bool is_r1_format_required = 14;
+  optional bool can_use_tools = 15;
 }
 
 // Model info for LiteLLM models
@@ -458,6 +462,7 @@ message LiteLLMModelInfo {
   optional string description = 11;
   repeated ModelTier tiers = 12;
   optional double temperature = 13;
+  optional bool can_use_tools = 14;
 }
 
 // Main ApiConfiguration message
