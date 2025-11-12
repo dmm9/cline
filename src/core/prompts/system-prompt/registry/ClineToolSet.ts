@@ -124,7 +124,7 @@ export class ClineToolSet {
 		// Only return tool functions if the model explicitly enables them
 		// via the "canUseTools" label set to true
 		// This avoids exposing tools to models that don't support them
-		if (!context.providerInfo.model.info.canUseTools || !context.enableNativeToolCalls) {
+		if (!context.providerInfo?.model?.info?.canUseTools || !context.enableNativeToolCalls) {
 			return undefined
 		}
 
